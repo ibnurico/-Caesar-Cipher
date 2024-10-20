@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Letter Frequency Encryption</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="flex-container">
+        <div class="form-container">
+            <h1>Letter Frequency Encryption</h1>
+            <form method="POST">
+                <!-- Input Teks -->
+                <div class="form-group">
+                    <label for="input-text">Input Text:</label>
+                    <textarea id="input-text" name="text" rows="4" placeholder="Enter your text..." required></textarea>
+                </div>
+
+                <!-- Kolom Shift -->
+                <div class="form-group">
+                    <label for="shift">Shift:</label>
+                    <input type="number" name="shift" value="3">
+                </div>
+
+                <!-- Tombol Proses -->
+                <button type="submit">Process</button>
+            </form>
+
+            <div class="result">
+                <h2>Result:</h2>
+                <textarea id="result-text" rows="5" readonly></textarea>
+            </div>
+        </div>
+
+        <!-- Diagram Container -->
+        <div class="diagram-container">
+            <h2>Letter Frequencies</h2>
+            <canvas id="frequency-chart"></canvas>
+            <div class="alphabet-container">
+                <div class="original-alphabet">
+                    <!-- Baris pertama alfabet A-Z -->
+                    <p id="original-alphabet"></p>
+                </div>
+                <div class="shifted-alphabet">
+                    <!-- Baris kedua hasil shift -->
+                    <p id="shifted-alphabet"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // AJAX request for submitting form
+        document.querySelector('form').addEventListener('submit', function (event) {
+            event.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            fetch('/', {
+                method: 'POST',
+                body: new URLSearchParams(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Update the chart with new data
+                chart.data.datasets[0].data = data.original_frequencies;
+                chart.data.datasets[1].data = data.standard_frequencies;
+                chart.update();
+
+                // Update the shifted alphabet row
+                document.getElementById('original-alphabet').textContent = 'A B C D E F G H I J K L M N O P Q R S T U V W X Y Z';
+                document.getElementById('shifted-alphabet').textContent = data.shifted_alphabet.split('').join(' ');
+
+                // Update the result text
+                document.getElementById('result-text').value = data.output_text;
+            });
+        });
+
+        // Initialize chart with placeholders
+        const ctx = document.getElementById('frequency-chart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ'),
+                datasets: [
+                    {
+                        label: 'Original Message',
+                        data: Array(26).fill(0), // Placeholder data for original message
+                        backgroundColor: 'rgba(54, 162, 235, 0.6)'
+                    },
+                    {
+                        label: 'Standard English',
+                        data: [8.2, 1.5, 2.8, 4.3, 12.7, 2.2, 2.0, 6.1, 7.0, 0.15, 0.77, 4.0, 2.4, 6.7, 7.5, 1.9, 0.09, 6.0, 6.3, 9.1, 2.8, 1.0, 2.4, 0.15, 2.0, 0.07],
+                        backgroundColor: 'rgba(255, 99, 132, 0.6)'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: {
+                            display: true
+                        }
+                    },
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
